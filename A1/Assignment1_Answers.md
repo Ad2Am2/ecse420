@@ -4,21 +4,21 @@ author: "Adam Corbier, Sirine Tarhouni"
 date: "October 1, 2025"
 ---
 
-# Question 1: Matrix Multiplication
+# Matrix Multiplication
 
-## 1.1 Sequential Matrix Multiplication
+## Sequential Matrix Multiplication
 
 The sequential matrix multiplication was implemented using the standard triple-loop approach where each element of the result matrix is computed by taking the dot product of the corresponding row from matrix A and column from matrix B. The method was validated by manually creating two small 2x2 test matrices with known values and verifying that the output matched the hand-calculated result. This process was repeated with different matrix sizes to confirm correctness.
 
-## 1.2 Parallel Matrix Multiplication
+## Parallel Matrix Multiplication
 
 The parallel matrix multiplication divides the work by assigning different rows of the result matrix to different threads. The result matrix is divided into equal chunks of rows, where each thread computes approximately `rowsA / NUMBER_THREADS` rows. The last thread handles any remaining rows if the division is not exact. Each thread independently computes its assigned rows using the standard triple-loop algorithm, and since each thread writes to distinct rows of the result matrix, no synchronization is needed. After all threads are created and started, the main thread uses `join()` to wait for all worker threads to complete before returning the result. The method was validated by comparing the output of the parallel implementation against the sequential implementation for the same input matrices and verifying that all corresponding elements match within a small tolerance.
 
-## 1.3 Execution Time Measurement
+## Execution Time Measurement
 
 The `measureExecutionTime()` method measures the execution time for both sequential and parallel matrix multiplication by recording the system time before and after each multiplication using `System.currentTimeMillis()`. The method displays the execution times, calculates the speedup ratio, and validates that both implementations produce identical results. To test the method returns plausible results, we verify that: (1) the sequential time is consistently longer than the parallel time for large matrices, (2) the speedup is reasonable and less than or equal to the number of threads used, and (3) both methods produce matching results, confirming correctness. Running the method multiple times with different matrix sizes should show that larger matrices benefit more from parallelization.
 
-## 1.4 Performance Analysis with Varying Thread Counts
+## Performance Analysis with Varying Thread Counts
 
 Experiments were conducted with 4000x4000 matrices using thread counts of 1, 2, 4, 8, and 16. The results show that execution time decreases as the number of threads increases, with the most significant improvements occurring between 1 and 8 threads. The speedup shows sub-linear scaling due to overhead from thread creation, management, and potential resources contention.
 
@@ -35,7 +35,7 @@ With 1 thread, the parallel implementation performs similarly to sequential (1.0
 
 ![Performance Plot](matrix_multiplication_performance.png)
 
-## 1.5 Performance Comparison Across Matrix Sizes
+## Performance Comparison Across Matrix Sizes
 
 Experiments were conducted with matrix sizes ranging from 100x100 to 4000x4000, comparing sequential execution against parallel execution using 16 threads (the optimal thread count from 1.4). The results demonstrate that execution time grows cubically with matrix size for both approaches, as expected for O(n³) algorithms.
 
@@ -53,29 +53,29 @@ For very small matrices (100x100), the parallel implementation is actually slowe
 
 ![Matrix Size Comparison](matrix_size_comparison.png)
 
-## 1.6 Analysis of Graph Shapes and Observed Behavior
+## Analysis of Graph Shapes and Observed Behavior
 
-**Graph 1.4 (Threads vs Performance):** The execution time plot shows a decreasing curve that becomes flatter as thread count increases, demonstrating diminishing returns. The speedup plot shows sub-linear growth that diverges from the ideal linear speedup line. This behavior occurs because: (1) thread creation and management overhead becomes more significant with more threads, (2) the system has limited physical cores (likely 4-8), so additional threads must share resources through hyperthreading which provides limited benefit, (3) memory bandwidth becomes a bottleneck as multiple threads compete to access the same matrices, and (4) cache contention increases as threads compete for shared cache resources. The flattening of the curve suggests that beyond 8 threads, the overhead of managing additional threads nearly equals the computational benefit gained.
+**1.4 (Threads vs Performance):** The execution time plot shows a decreasing curve that becomes flatter as thread count increases, demonstrating diminishing returns. The speedup plot shows sub-linear growth that diverges from the ideal linear speedup line. This behavior occurs because: (1) thread creation and management overhead becomes more significant with more threads, (2) the system has limited physical cores (likely 4-8), so additional threads must share resources through hyperthreading which provides limited benefit, (3) memory bandwidth becomes a bottleneck as multiple threads compete to access the same matrices, and (4) cache contention increases as threads compete for shared cache resources. The flattening of the curve suggests that beyond 8 threads, the overhead of managing additional threads nearly equals the computational benefit gained.
 
-**Graph 1.5 (Matrix Size vs Performance):** Both sequential and parallel execution times follow an exponential growth pattern on the log-scale plot, reflecting the O(n³) time complexity of matrix multiplication. The parallel line is consistently below the sequential line (except for 100x100) and maintains a roughly constant vertical distance, indicating consistent speedup across matrix sizes. The shape demonstrates that: (1) computational work grows cubically with matrix size since each element requires n multiplications and there are n² elements, (2) larger matrices provide more work to distribute among threads, making parallelization more effective, (3) the constant gap between lines shows that parallel overhead becomes negligible relative to computation time for larger matrices, and (4) the crossover point at small matrix sizes reveals where overhead dominates, making parallelization counterproductive. The log scale clearly visualizes the dramatic increase in execution time as matrices grow larger.
+**1.5 (Matrix Size vs Performance):** Both sequential and parallel execution times follow an exponential growth pattern on the log-scale plot, reflecting the O(n³) time complexity of matrix multiplication. The parallel line is consistently below the sequential line (except for 100x100) and maintains a roughly constant vertical distance, indicating consistent speedup across matrix sizes. The shape demonstrates that: (1) computational work grows cubically with matrix size since each element requires n multiplications and there are n² elements, (2) larger matrices provide more work to distribute among threads, making parallelization more effective, (3) the constant gap between lines shows that parallel overhead becomes negligible relative to computation time for larger matrices, and (4) the crossover point at small matrix sizes reveals where overhead dominates, making parallelization counterproductive. The log scale clearly visualizes the dramatic increase in execution time as matrices grow larger.
 
-# Question 2: Deadlock
+# Deadlock
 
-## 2.1 Deadlock Conditions and Demonstration
+## Deadlock Conditions and Demonstration
 
 Deadlock occurs when four conditions are simultaneously satisfied: (1) **Mutual Exclusion** - resources cannot be shared and only one thread can use a resource at a time, (2) **Hold and Wait** - threads hold resources while waiting for additional resources, (3) **No Preemption** - resources cannot be forcibly taken from threads, and (4) **Circular Wait** - a circular chain exists where each thread waits for a resource held by the next thread in the chain. The consequences of deadlock are severe: the involved threads become permanently blocked and unable to progress, system resources remain locked and unavailable, and the application may hang indefinitely requiring manual intervention to terminate.
 
 The `DeadlockDemo.java` program demonstrates deadlock using two threads and two shared resources. Thread 1 acquires a lock on Resource A and then attempts to acquire Resource B, while Thread 2 acquires a lock on Resource B and then attempts to acquire Resource A. The sleep delays ensure both threads acquire their first lock before attempting the second. This creates a circular wait: Thread 1 holds A and waits for B, while Thread 2 holds B and waits for A. Since both threads are waiting for resources held by the other and neither can proceed, the program hangs indefinitely. Running the program shows both threads acquiring their first lock and then waiting forever for their second lock, clearly demonstrating the deadlock condition.
 
-## 2.2 Deadlock Prevention Solutions
+## Deadlock Prevention Solutions
 
 Several design solutions can prevent deadlock by breaking one of the four necessary conditions. **Lock Ordering** establishes a global order for acquiring locks, ensuring all threads request resources in the same sequence, thereby breaking circular wait. **Lock Timeout** uses timed lock attempts where threads release held locks if they cannot acquire all needed resources within a timeout period, breaking the hold-and-wait condition. **Deadlock Detection and Recovery** allows the system to detect deadlock cycles and recover by forcibly releasing locks or terminating threads. **Resource Allocation Graph** prevents cycles by analyzing resource dependencies before granting locks. **Single Lock Strategy** uses one global lock for all operations, eliminating the possibility of circular wait but reducing concurrency.
 
 For the `DeadlockDemo.java` program, the **lock ordering** solution is most appropriate and straightforward to implement. By ensuring both threads acquire locks in the same order (always lock A before B), the circular wait condition is eliminated. Thread 1 would lock A then B, and Thread 2 would also lock A then B, meaning Thread 2 would wait for Thread 1 to release A, then proceed to acquire both locks in sequence. This simple modification guarantees deadlock cannot occur while maintaining the same functionality. Alternatively, **lock timeout** could be used where threads attempt to acquire locks with a timeout and retry if unsuccessful, though this adds complexity and potential performance overhead from repeated attempts.
 
-# Question 3: Dining Philosophers
+# Dining Philosophers
 
-## 3.1 Dining Philosophers with Deadlock
+## Dining Philosophers with Deadlock
 
 The `DiningPhilosophers.java` program simulates the classic dining philosophers problem for any number n of philosophers. Each philosopher is implemented as a thread that continuously alternates between thinking and eating. To eat, a philosopher must acquire two chopsticks - the one on their left and the one on their right. The chopsticks are represented as shared `Object` instances stored in an array, where philosopher i uses chopstick i (left) and chopstick (i+1) % n (right).
 
@@ -113,7 +113,7 @@ Philosopher 4 picked up left chopstick
 
 The output demonstrates that philosophers successfully think and eat for several rounds, but eventually reach a state where all simultaneously hold their left chopstick and wait indefinitely for their right chopstick, causing deadlock.
 
-## 3.2 Dining Philosophers with Deadlock Prevention
+## Dining Philosophers with Deadlock Prevention
 
 The modified program prevents deadlock by implementing **resource ordering** (also known as the lock ordering strategy). Instead of each philosopher always picking up their left chopstick first and then their right chopstick, philosophers now acquire chopsticks in a globally consistent order based on chopstick IDs. Specifically, each philosopher determines which of their two adjacent chopsticks has the lower ID number and always acquires that one first, then acquires the higher-numbered chopstick second.
 
@@ -143,7 +143,7 @@ Philosopher 4 is eating (meal #35)
 
 The output shows philosophers successfully completing many meals without ever entering a deadlock state.
 
-## 3.3 Dining Philosophers with Starvation Prevention
+## Dining Philosophers with Starvation Prevention
 
 The final version of the program prevents both deadlock and starvation by replacing `synchronized` blocks with fair `ReentrantLock` objects. A fair lock guarantees that threads acquire the lock in First-In-First-Out (FIFO) order based on the time they requested it, rather than allowing the scheduler to arbitrarily select which waiting thread gets the lock next.
 
@@ -164,9 +164,9 @@ Philosopher 4 is eating (meal #42)
 
 After running for several seconds, all philosophers have eaten between 42-59 meals, showing relatively balanced progress. In contrast, a system with starvation might show one philosopher at meal #2 while others are at meal #50+. The fair locks guarantee that no philosopher is indefinitely prevented from eating, thus proving the system is starvation-free. We could also add logging to track wait times and verify that no philosopher waits an unbounded amount of time for resources.
 
-# Question 4: Amdahl's Law
+# Amdahl's Law
 
-## 4.1 Speedup Calculation with 40% Sequential Execution
+## Speedup Calculation with 40% Sequential Execution
 
 **Given:**
 - Sequential portion of program: s = 0.40 (40% of execution time)
@@ -231,7 +231,7 @@ lim(n→∞) S(n) = 1 / 0.40 = 2.5
 
 **Answer:** The speedup formula is **S(n) = 1 / (0.40 + 0.60/n)**, and the maximum speedup with unlimited processors is **2.5x**. This means that no matter how many processors we add, we can never achieve more than 2.5 times speedup because 40% of the program must run sequentially. This demonstrates Amdahl's Law's key insight: the sequential portion of a program fundamentally limits the maximum achievable speedup through parallelization.
 
-## 4.2 Finding the Improvement Factor to Double Speedup
+## Finding the Improvement Factor to Double Speedup
 
 **Given:**
 - Original sequential portion: s = 0.30 (30% of execution time)
@@ -331,7 +331,7 @@ k = (0.6n - 0.6) / (0.3n - 1.3)
 
 **Answer:** To achieve double the original speedup, you should advertise for a programmer who can improve the sequential portion by a factor of **k = 6(n - 1) / (3n - 13)** or equivalently **k = (0.6n - 0.6) / (0.3n - 1.3)**. This expression shows that the required improvement factor depends on the number of processors n. For example, with n = 10 processors, k = 6(9)/(17) ≈ 3.18, meaning the sequential portion must be reduced to about 31.5% of its original time (from 30% to approximately 9.4% of total execution time).
 
-## 4.3 Finding Sequential Fraction Given Improvement and Speedup
+## Finding Sequential Fraction Given Improvement and Speedup
 
 **Given:**
 - Sequential time is decreased 3-fold: s' = s/3
