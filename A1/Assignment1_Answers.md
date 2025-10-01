@@ -168,284 +168,82 @@ After running for several seconds, all philosophers have eaten between 42-59 mea
 
 ## Speedup Calculation with 40% Sequential Execution
 
-**Given:**
-- Sequential portion of program: s = 0.40 (40% of execution time)
-- Parallel portion of program: p = 1 - s = 0.60 (60% of execution time)
-- Number of processors: n
+Let's consider a program where 40% of the execution time is sequential ($s = 0.40$) and 60% can be parallelized ($p = 0.60$). We want to find the speedup formula and maximum achievable speedup.
 
-**Amdahl's Law Formula:**
+By Amdahl's Law, the speedup $S(n)$ with $n$ processors is defined as the ratio of sequential execution time to parallel execution time:
 
-The speedup S(n) is defined as:
+$$S(n) = \frac{T(1)}{T(n)}$$
 
-```
-S(n) = T(1) / T(n)
-```
+To derive this, let's normalize the sequential execution time $T(1) = 1$. When we use $n$ processors, the execution time becomes:
 
-Where:
-- T(1) = execution time on 1 processor (sequential baseline)
-- T(n) = execution time on n processors
+$$T(n) = s + \frac{p}{n}$$
 
-**Derivation:**
+This is because the sequential portion $s$ cannot be parallelized and still takes the same time, while the parallel portion $p$ is divided among $n$ processors.
 
-Normalize T(1) = 1 (representing 100% of execution time)
+Substituting our values:
+$$T(n) = 0.40 + \frac{0.60}{n}$$
 
-The execution time on n processors consists of:
-- Sequential portion: s (cannot be parallelized, takes same time regardless of n)
-- Parallel portion: p/n (divided equally among n processors)
+Therefore, the speedup is:
+$$S(n) = \frac{1}{0.40 + \frac{0.60}{n}}$$
 
-Therefore:
-```
-T(n) = s + p/n
-T(n) = 0.40 + 0.60/n
-```
+To find the maximum speedup as $n$ approaches infinity:
+$$\lim_{n \to \infty} S(n) = \lim_{n \to \infty} \left[\frac{1}{0.40 + \frac{0.60}{n}}\right] = \frac{1}{0.40} = 2.5$$
 
-The speedup is:
-```
-S(n) = T(1) / T(n)
-S(n) = 1 / (s + p/n)
-S(n) = 1 / (0.40 + 0.60/n)
-```
-
-**General Expression:**
-```
-S(n) = 1 / (0.40 + 0.60/n)
-```
-
-Or equivalently:
-```
-S(n) = n / (0.40n + 0.60)
-```
-
-**Limit as n → ∞:**
-
-To find the maximum possible speedup with unlimited processors:
-
-```
-lim(n→∞) S(n) = lim(n→∞) [1 / (0.40 + 0.60/n)]
-
-As n → ∞, the term 0.60/n → 0
-
-Therefore:
-lim(n→∞) S(n) = 1 / 0.40 = 2.5
-```
-
-**Answer:** The speedup formula is **S(n) = 1 / (0.40 + 0.60/n)**, and the maximum speedup with unlimited processors is **2.5x**. This means that no matter how many processors we add, we can never achieve more than 2.5 times speedup because 40% of the program must run sequentially. This demonstrates Amdahl's Law's key insight: the sequential portion of a program fundamentally limits the maximum achievable speedup through parallelization.
+This shows that regardless of how many processors we add, we can never achieve more than 2.5× speedup due to the sequential bottleneck.
 
 ## Finding the Improvement Factor to Double Speedup
 
-**Given:**
-- Original sequential portion: s = 0.30 (30% of execution time)
-- Original parallel portion: p = 1 - s = 0.70 (70% of execution time)
-- Number of processors: n
-- Target: Double the speedup, i.e., s'ₙ = 2sₙ
-- Improved sequential portion: s' = s/k (reduced by factor k)
+Consider a program with 30% sequential execution ($s = 0.30$) and 70% parallel execution ($p = 0.70$). We want to determine by what factor $k$ we need to improve the sequential portion to double the speedup on $n$ processors.
 
-**Step 1: Calculate Original Speedup**
+First, let's find the original speedup:
+$$S_{\text{original}}(n) = \frac{1}{0.30 + \frac{0.70}{n}}$$
 
-Using Amdahl's Law:
-```
-sₙ = 1 / (s + p/n)
-sₙ = 1 / (0.30 + 0.70/n)
-```
-
-**Step 2: Calculate New Speedup with Improved Sequential Part**
-
-After improvement, the sequential portion becomes s/k:
-```
-s' = s/k = 0.30/k
-p' = 1 - s' = 1 - 0.30/k
-```
+If we improve the sequential portion by factor $k$, the new sequential fraction becomes $s' = \frac{0.30}{k}$, and the parallel fraction becomes $p' = 1 - \frac{0.30}{k}$.
 
 The new speedup is:
-```
-s'ₙ = 1 / (s' + p'/n)
-s'ₙ = 1 / (s/k + (1 - s/k)/n)
-s'ₙ = 1 / (0.30/k + (1 - 0.30/k)/n)
-```
+$$S_{\text{new}}(n) = \frac{1}{\frac{0.30}{k} + \frac{\left(1 - \frac{0.30}{k}\right)}{n}}$$
 
-**Step 3: Apply the Constraint s'ₙ = 2sₙ**
+We want $S_{\text{new}}(n) = 2 \times S_{\text{original}}(n)$, so:
+$$\frac{1}{\frac{0.30}{k} + \frac{\left(1 - \frac{0.30}{k}\right)}{n}} = \frac{2}{0.30 + \frac{0.70}{n}}$$
 
-Set the new speedup equal to twice the original:
-```
-s'ₙ = 2sₙ
+Cross-multiplying:
+$$0.30 + \frac{0.70}{n} = 2\left[\frac{0.30}{k} + \frac{\left(1 - \frac{0.30}{k}\right)}{n}\right]$$
 
-1 / (s/k + (1 - s/k)/n) = 2 × [1 / (s + p/n)]
+Expanding the right side:
+$$0.30 + \frac{0.70}{n} = \frac{0.60}{k} + \frac{2\left(1 - \frac{0.30}{k}\right)}{n}$$
+$$0.30 + \frac{0.70}{n} = \frac{0.60}{k} + \frac{2}{n} - \frac{0.60}{kn}$$
 
-1 / (s/k + (1 - s/k)/n) = 2 / (s + p/n)
-```
+Multiplying through by $kn$:
+$$0.30kn + 0.70k = 0.60n + 2k - 0.60$$
+$$0.30kn + 0.70k - 2k = 0.60n - 0.60$$
+$$k(0.30n - 1.30) = 0.60(n - 1)$$
 
-Cross-multiply:
-```
-s + p/n = 2[s/k + (1 - s/k)/n]
+Therefore:
+$$k = \frac{0.60(n - 1)}{0.30n - 1.30} = \frac{6(n - 1)}{3n - 13}$$
 
-s + p/n = 2s/k + 2(1 - s/k)/n
-```
-
-**Step 4: Solve for k**
-
-Substitute s = 0.30 and p = 0.70:
-```
-0.30 + 0.70/n = 2(0.30)/k + 2(1 - 0.30/k)/n
-
-0.30 + 0.70/n = 0.60/k + 2/n - 0.60/(kn)
-```
-
-Multiply through by kn to eliminate fractions:
-```
-0.30kn + 0.70k = 0.60n + 2k - 0.60
-
-0.30kn + 0.70k - 2k = 0.60n - 0.60
-
-0.30kn - 1.30k = 0.60n - 0.60
-
-k(0.30n - 1.30) = 0.60n - 0.60
-
-k = (0.60n - 0.60) / (0.30n - 1.30)
-```
-
-Factor out common terms:
-```
-k = 0.60(n - 1) / [0.30(n - 13/3)]
-
-k = 2(n - 1) / (n - 13/3)
-```
-
-Or more simply:
-```
-k = (0.6n - 0.6) / (0.3n - 1.3)
-
-k = 0.6(n - 1) / [0.1(3n - 13)]
-
-k = 6(n - 1) / (3n - 13)
-```
-
-**General Expression:**
-```
-k = 6(n - 1) / (3n - 13)
-```
-
-Or equivalently:
-```
-k = (0.6n - 0.6) / (0.3n - 1.3)
-```
-
-**Answer:** To achieve double the original speedup, you should advertise for a programmer who can improve the sequential portion by a factor of **k = 6(n - 1) / (3n - 13)** or equivalently **k = (0.6n - 0.6) / (0.3n - 1.3)**. This expression shows that the required improvement factor depends on the number of processors n. For example, with n = 10 processors, k = 6(9)/(17) ≈ 3.18, meaning the sequential portion must be reduced to about 31.5% of its original time (from 30% to approximately 9.4% of total execution time).
+For example, with $n = 10$ processors: $k = \frac{6(9)}{17} \approx 3.18$, meaning we need to reduce the sequential portion to about 1/3 of its original time.
 
 ## Finding Sequential Fraction Given Improvement and Speedup
 
-**Given:**
-- Sequential time is decreased 3-fold: s' = s/3
-- Modified program takes half the time of original on n processors
-- Sequential execution time: T(1) = 1 (unit time)
-- Unknown: Original sequential fraction s
+We're told that when the sequential time is decreased by a factor of 3, the modified program takes half the time of the original on $n$ processors. We need to find the original sequential fraction $s$.
 
-**Step 1: Express Original Execution Time on n Processors**
+Let's set up the problem. Originally, with sequential fraction $s$, the execution time on $n$ processors is:
+$$T_{\text{original}}(n) = s + \frac{1-s}{n}$$
 
-Using Amdahl's Law with sequential fraction s and parallel fraction p = 1 - s:
-```
-T_original(n) = s + p/n
-T_original(n) = s + (1 - s)/n
-```
+After improvement, the sequential portion becomes $\frac{s}{3}$, so the new execution time is:
+$$T_{\text{modified}}(n) = \frac{s}{3} + \frac{\left(1-\frac{s}{3}\right)}{n} = \frac{s}{3} + \frac{3-s}{3n}$$
 
-**Step 2: Express Modified Execution Time on n Processors**
+We're given that $T_{\text{modified}}(n) = \frac{1}{2} \times T_{\text{original}}(n)$, so:
+$$\frac{s}{3} + \frac{3-s}{3n} = \frac{1}{2}\left[s + \frac{1-s}{n}\right]$$
 
-After decreasing sequential time by factor of 3:
-```
-s' = s/3
-p' = 1 - s' = 1 - s/3
-```
+Let's solve this equation. Multiplying both sides by $6n$:
+$$2ns + 2(3-s) = 3ns + 3(1-s)$$
+$$2ns + 6 - 2s = 3ns + 3 - 3s$$
 
-The modified execution time is:
-```
-T_modified(n) = s' + p'/n
-T_modified(n) = s/3 + (1 - s/3)/n
-T_modified(n) = s/3 + (3 - s)/(3n)
-```
+Rearranging:
+$$2ns - 3ns - 2s + 3s = 3 - 6$$
+$$-ns + s = -3$$
+$$s(1-n) = -3$$
+$$s = \frac{3}{n-1}$$
 
-**Step 3: Apply the Given Constraint**
-
-The modified program takes half the time of the original:
-```
-T_modified(n) = (1/2) × T_original(n)
-
-s/3 + (3 - s)/(3n) = (1/2)[s + (1 - s)/n]
-```
-
-**Step 4: Solve for s**
-
-Multiply both sides by 6n to eliminate fractions:
-```
-6n × [s/3 + (3 - s)/(3n)] = 6n × (1/2)[s + (1 - s)/n]
-
-2ns + 2(3 - s) = 3ns + 3(1 - s)
-
-2ns + 6 - 2s = 3ns + 3 - 3s
-```
-
-Rearrange terms:
-```
-2ns - 3ns - 2s + 3s = 3 - 6
-
--ns + s = -3
-
-s(1 - n) = -3
-
-s(-1)(n - 1) = -3
-
-s(n - 1) = 3
-```
-
-Therefore:
-```
-s = 3 / (n - 1)
-```
-
-**Verification:**
-
-Let's verify with n = 4:
-- s = 3/(4-1) = 1
-- This would mean 100% sequential, which doesn't make sense for our problem
-
-Let me recalculate more carefully:
-
-```
-s/3 + (3 - s)/(3n) = (1/2)[s + (1 - s)/n]
-```
-
-Simplify left side:
-```
-s/3 + (3 - s)/(3n) = s/3 + 3/(3n) - s/(3n)
-                    = s/3 + 1/n - s/(3n)
-                    = ns/(3n) + 3/(3n) - s/(3n)
-                    = (ns + 3 - s)/(3n)
-                    = (s(n - 1) + 3)/(3n)
-```
-
-Simplify right side:
-```
-(1/2)[s + (1 - s)/n] = (1/2)[sn/n + (1 - s)/n]
-                      = (1/2)[(sn + 1 - s)/n]
-                      = (s(n - 1) + 1)/(2n)
-```
-
-Set equal:
-```
-(s(n - 1) + 3)/(3n) = (s(n - 1) + 1)/(2n)
-
-2n[s(n - 1) + 3] = 3n[s(n - 1) + 1]
-
-2s(n - 1) + 6 = 3s(n - 1) + 3
-
-6 - 3 = 3s(n - 1) - 2s(n - 1)
-
-3 = s(n - 1)
-
-s = 3 / (n - 1)
-```
-
-**General Expression:**
-```
-s = 3 / (n - 1)
-```
-
-**Answer:** The sequential part accounts for **s = 3 / (n - 1)** of the overall execution time as a function of n. This means that the fraction of sequential execution depends on the number of processors being used. For example, with n = 4 processors, the sequential portion would be s = 3/3 = 1.0 or 100%, which represents a fully sequential program. With n = 10 processors, s = 3/9 = 1/3 or approximately 33.3%. Note that for this formula to represent a valid fraction (between 0 and 1), we need n > 4. For n ≤ 4, the constraints of the problem cannot be simultaneously satisfied with a valid sequential fraction.
+We can verify this makes sense: for $n = 4$, $s = 1$ (100% sequential), which represents an edge case. For larger $n$, $s$ becomes a reasonable fraction. For instance, with $n = 10$, $s = \frac{3}{9} = \frac{1}{3}$, meaning 33% of the program is sequential.
