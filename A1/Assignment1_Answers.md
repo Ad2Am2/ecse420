@@ -1,6 +1,6 @@
 ---
 title: "ECSE 420 Assignment 1"
-author: "Adam Corbier, Sirine Tarhouni"
+author: "Adam Corbier (261044361), Sirine Tarhouni (261056541)"
 date: "October 1, 2025"
 ---
 
